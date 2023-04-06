@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using MoviesCatalogue.Context;
 using MoviesCatalogue.Models;
 
@@ -17,19 +18,30 @@ namespace MoviesCatalogue.Controllers
     public class MovieController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IMemoryCache _memoryCache;
 
-        public MovieController(AppDbContext context)
+        public MovieController(AppDbContext context, IMemoryCache memoryCache)
         {
             _context = context;
+            _memoryCache = memoryCache;
         }
 
         // GET: api/Movies
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Movie>>> GetMovies()
         {
+            //string? search, string category, int releasedYear
             try
             {
-                return await _context.Movies.ToListAsync();
+                List<Movie> result = await _memoryCache.GetOrCreateAsync("allmovies", async entry =>
+                {
+                    var movies = await _context.Movies.ToListAsync();
+
+                    return movies;
+                });
+
+                return result;
+
             }
             catch (Exception error)
             {

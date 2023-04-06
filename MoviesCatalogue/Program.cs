@@ -30,6 +30,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
     };
 });
 
+builder.Services.AddMemoryCache();
+
 var app = builder.Build();
 
 app.UseSwagger();
