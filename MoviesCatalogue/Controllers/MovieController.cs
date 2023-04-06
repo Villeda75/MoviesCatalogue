@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,13 +12,13 @@ using MoviesCatalogue.Models;
 
 namespace MoviesCatalogue.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("movie")]
     [ApiController]
-    public class MoviesController : ControllerBase
+    public class MovieController : ControllerBase
     {
         private readonly AppDbContext _context;
 
-        public MoviesController(AppDbContext context)
+        public MovieController(AppDbContext context)
         {
             _context = context;
         }
@@ -71,10 +73,23 @@ namespace MoviesCatalogue.Controllers
         [HttpPost]
         public async Task<ActionResult<Movie>> PostMovie(Movie movie)
         {
-            _context.Movies.Add(movie);
-            await _context.SaveChangesAsync();
+            var identity = HttpContext.User.Identity as ClaimsIdentity;
 
-            return CreatedAtAction("GetMovie", new { id = movie.Id }, movie);
+            bool isAdmin = IsAdmin(identity);
+
+            if (isAdmin) {
+                _context.Movies.Add(movie);
+                await _context.SaveChangesAsync();
+
+                return CreatedAtAction("GetMovie", new { id = movie.Id }, movie);
+            }
+
+            return Unauthorized(new
+            {
+                success = false,
+                message = "You don't have administrator permission",
+                data = ""
+            });
         }
 
         // DELETE: api/Movies/5
@@ -96,6 +111,34 @@ namespace MoviesCatalogue.Controllers
         private bool MovieExists(int id)
         {
             return (_context.Movies?.Any(e => e.Id == id)).GetValueOrDefault();
+        }
+
+        private bool IsAdmin(ClaimsIdentity identity)
+        {
+            bool isAdmin = false;
+
+            try
+            {
+
+                if (identity.Claims.Any())
+                {
+
+                    var Id = identity.Claims.FirstOrDefault(x => x.Type == "Id").Value;
+
+                    if (int.TryParse(Id, out int userId))
+                    {
+                        User user = _context.Users.Where(x => x.Id.Equals(userId)).FirstOrDefault();
+                        
+                        isAdmin = user.Role.Equals("Admin");
+                    }
+                }
+
+                return isAdmin;
+            }
+            catch (Exception error)
+            {
+                return isAdmin;
+            }
         }
     }
 }
