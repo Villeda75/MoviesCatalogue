@@ -21,6 +21,7 @@ namespace MoviesCatalogue.Context
                     Id = 1,
                     Name = "Josue Chacon",
                     Email = "josuechacon@gmail.com",
+                    Password = "@dmi321!",
                     Role = "Admin",
                 });
 
@@ -29,6 +30,7 @@ namespace MoviesCatalogue.Context
                     Id = 2,
                     Name = "Alexander Villeda",
                     Email = "alexander@gmail.com",
+                    Password = "us3r321!",
                     Role = "User",
                 });
             });
