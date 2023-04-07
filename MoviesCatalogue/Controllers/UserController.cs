@@ -64,8 +64,7 @@
                     jwt.Issuer,
                     jwt.Audience,
                     claims,
-                    //expires: DateTime.Now.AddMinutes(15),
-                    expires: DateTime.Now.AddHours(5),
+                    expires: DateTime.Now.AddMinutes(15),
                     signingCredentials: sigIn
                     );
 
