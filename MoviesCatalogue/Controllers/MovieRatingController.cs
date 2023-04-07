@@ -75,37 +75,51 @@ namespace MoviesCatalogue.Controllers
             
         }
 
-        // GET: api/MovieRating/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<RatedMovie>> GetRatedMovie(int id)
-        {
-          if (_context.RatedMovies == null)
-          {
-              return NotFound();
-          }
-            var ratedMovie = await _context.RatedMovies.FindAsync(id);
-
-            if (ratedMovie == null)
-            {
-                return NotFound();
-            }
-
-            return ratedMovie;
-        }
-
         //POST
         [HttpPost]
         [Authorize]
-        public async Task<ActionResult<RatedMovie>> PostRatedMovie(RatedMovie ratedMovie)
+        public async Task<ActionResult<dynamic>> PostRatedMovie(MovieRating movieRating)
         {
-          if (_context.RatedMovies == null)
-          {
-              return Problem("Entity set 'AppDbContext.RatedMovies'  is null.");
-          }
-            _context.RatedMovies.Add(ratedMovie);
-            await _context.SaveChangesAsync();
+            string message = "Could not rated movie.";
 
-            return CreatedAtAction("GetRatedMovie", new { id = ratedMovie.Id }, ratedMovie);
+            try
+            {
+                if(movieRating.MovieId == 0 || movieRating.Rating == 0)
+                {
+                    return BadRequest(new Response<dynamic>(message, "Invalid movie rating object.", ""));
+                }
+
+                var identity = HttpContext.User.Identity as ClaimsIdentity;
+
+                if (identity == null)
+                {
+                    return NotFound(new Response<dynamic>(message, "User not found", ""));
+                }
+
+                int userId = Jwt.GetClaimId(identity);
+
+                if (UserHasRatedMovie(movieRating.MovieId).Result)
+                {
+                    return BadRequest(new Response<dynamic>(message, "The movie has already been rated by the user.", ""));
+                }
+
+                RatedMovie entityObject = new()
+                {
+                    UserId = userId,
+                    MovieId = movieRating.MovieId,
+                    Rate = movieRating.Rating,
+                    CreatedDate = DateTime.UtcNow
+                };
+
+                _context.RatedMovies.Add(entityObject);
+                await _context.SaveChangesAsync();
+
+                return Ok(new Response<dynamic>("Successfully rated movie.", entityObject));
+            }
+            catch (Exception error)
+            {
+                return BadRequest(new Response<dynamic>(message, error.Message, ""));
+            }
         }
 
         // DELETE
@@ -113,14 +127,27 @@ namespace MoviesCatalogue.Controllers
         [Authorize]
         public async Task<IActionResult> DeleteRatedMovie(int id)
         {
-            if (_context.RatedMovies == null)
+            string message = "Could not deleted movie.";
+
+            if (id == 0)
             {
-                return NotFound();
+                return NotFound(new Response<dynamic>(message, "Empty id.", ""));
             }
-            var ratedMovie = await _context.RatedMovies.FindAsync(id);
+
+            var identity = HttpContext.User.Identity as ClaimsIdentity;
+
+            if (identity == null)
+            {
+                return NotFound(new Response<dynamic>(message, "User not found", ""));
+            }
+
+            int userId = Jwt.GetClaimId(identity);
+
+            var ratedMovie = await _context.RatedMovies.Where(x => x.Id == id && x.UserId == userId).FirstOrDefaultAsync();
+
             if (ratedMovie == null)
             {
-                return NotFound();
+                return NotFound(new Response<dynamic>(message, "Movie rating not found", ""));
             }
 
             _context.RatedMovies.Remove(ratedMovie);
@@ -129,9 +156,12 @@ namespace MoviesCatalogue.Controllers
             return NoContent();
         }
 
-        private bool RatedMovieExists(int id)
+        private async Task<bool> UserHasRatedMovie(int MovieId)
         {
-            return (_context.RatedMovies?.Any(e => e.Id == id)).GetValueOrDefault();
+            bool hasRated = await _context.RatedMovies.AnyAsync(x => x.MovieId == MovieId);
+            
+            return hasRated;
         }
+
     }
 }
