@@ -9,6 +9,7 @@ using System.Text;
 using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using MoviesCatalogue.Classes.Wrappers;
 
 namespace MoviesCatalogue.Controllers
 {
@@ -93,85 +94,44 @@ namespace MoviesCatalogue.Controllers
             {   
                 if (user is null)
                 {
-                    return BadRequest(new
-                    {
-                        success = false,
-                        status = 400,
-                        message = errorMessage,
-                        error = "Object null"
-                        
-                    });
+                    return BadRequest(new Response<User>(errorMessage, "Object null", user));
                 }
 
                 if (!ModelState.IsValid)
                 {
-                    return BadRequest(new
-                    {
-                        success = false,
-                        status = 400,
-                        message = errorMessage,
-                        error = "Missing required fields: Name, Email, Password and Role"
-                        
-                    });
+                    return BadRequest(new Response<User>(errorMessage, "Missing required fields: Name, Email, Password and Role", user)); 
                 }
 
                 if (!IsValidEmail(user.Email))
                 {
-                    return BadRequest(new
-                    {
-                        success = false,
-                        status = 400,
-                        message = errorMessage,
-                        error = "Invalid email"
-                    });
+                    return BadRequest(new Response<User>(errorMessage, "Invalid email", user));
                 }
 
                
                 if (IsTheUserExist(user.Email))
                 {
-                    return BadRequest(new
-                    {
-                        success = false,
-                        status = 400,
-                        message = errorMessage,
-                        error = "User already exists"
-                    });
+                    return BadRequest(new Response<User>(errorMessage, "User already exists", user));
                 }
                     
 
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
 
-                return Ok(new
-                {
-                    success = true,
-                    status = 201,
-                    message = "Successfully registered user.",
-                    data = user,
-                    error = ""
-                });
+                return Ok(new Response<User>("Successfully registered user.", user));
             }
             catch (Exception error)
             {
-                return BadRequest(new
-                {
-                    success = false,
-                    status = 400,
-                    message = errorMessage,
-                    error = error.Message
-                });
+                return BadRequest(new Response<User>(errorMessage, error.Message, user));
             }
            
         }
 
-        [NonAction]
-        public bool IsTheUserExist(string Email)
+        private bool IsTheUserExist(string Email)
         {
             return _context.Users.Where(x => x.Email.Equals(Email)).Any();
         }
 
-        [NonAction]
-        public bool IsValidEmail(string Email)
+        private static bool IsValidEmail(string Email)
         {
             return new EmailAddressAttribute().IsValid(Email);
         }
