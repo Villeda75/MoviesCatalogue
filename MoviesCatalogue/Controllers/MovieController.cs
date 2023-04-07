@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -12,7 +13,8 @@ using Microsoft.Extensions.Caching.Memory;
 using MoviesCatalogue.Classes.Wrappers;
 using MoviesCatalogue.Context;
 using MoviesCatalogue.Models;
-using Newtonsoft.Json;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using System.Drawing;
 //using CustomMovie = MoviesCatalogue.Classes.Wrappers.Movie;
 
 namespace MoviesCatalogue.Controllers
@@ -38,16 +40,32 @@ namespace MoviesCatalogue.Controllers
 
             try
             {
+                string cacheKey = GenerateCacheKeyFromObject(filters);
+
+                //Validate paginated parameters
+                int PageNumber = filters.PageNumber > 0 ? filters.PageNumber : 1;
+                int PageSize = filters.PageSize > 0 ? filters.PageSize : 4;
+
                 int TotalRecords = await _context.Movies.CountAsync();
+                decimal PagesQuotient = TotalRecords / PageSize;
+                int TotalPages = (int)Math.Ceiling(PagesQuotient);
+
+                if (_memoryCache.TryGetValue(cacheKey, out List<CustomMovie> cacheMovies))
+                {
+                    return Ok(new PaginatedResponse<List<CustomMovie>>(cacheMovies, PageNumber, PageSize, TotalPages, TotalRecords));
+                }
+                
+                var cacheEntryOptions = new MemoryCacheEntryOptions()
+                    .SetSlidingExpiration(TimeSpan.FromMinutes(1))
+                    .SetAbsoluteExpiration(TimeSpan.FromMinutes(15));
+
+                
 
                 if (TotalRecords == 0)
                 {
-                    return Ok(new PaginatedResponse<List<CustomMovie>>(movieList, 1, 0, 0, 0));
+                    _memoryCache.Set(cacheKey, movieList, cacheEntryOptions);
+                    return Ok(new PaginatedResponse<List<CustomMovie>>(movieList, PageNumber, PageSize, TotalPages, TotalRecords));
                 }
-
-                //Validate paginated parameters
-                int PageNumber = filters.PageNumber > 0 ? filters.PageNumber : 1; 
-                int PageSize = filters.PageSize > 0 ? filters.PageSize : 4; 
 
                 var movies = from m in _context.Movies
                              join mr in _context.RatedMovies
@@ -85,9 +103,7 @@ namespace MoviesCatalogue.Controllers
 
                 movieList = await movies.Skip(SkipRows).Take(PageSize).ToListAsync();
 
-                decimal PagesQuotient = TotalRecords / PageSize;
-                int TotalPages = (int)Math.Ceiling(PagesQuotient);
-
+                _memoryCache.Set(cacheKey, movieList, cacheEntryOptions);
                 return Ok(new PaginatedResponse<List<CustomMovie>>(movieList, PageNumber, PageSize, TotalPages, TotalRecords));
 
             }
@@ -200,6 +216,25 @@ namespace MoviesCatalogue.Controllers
             {
                 return isAdmin;
             }
+        }
+
+        private static string GenerateCacheKeyFromObject<TEntity>(TEntity movieObj)
+        {
+            var key = string.Empty;
+
+            if (movieObj != null) {
+
+                PropertyInfo[] properties = movieObj.GetType().GetProperties();
+                foreach (PropertyInfo property in properties)
+                {
+                    if (property.GetValue(movieObj) != null)
+                    {
+                        key += property.GetValue(movieObj) + "-";
+                    }
+                }
+            }
+
+            return key;
         }
     }
 }
