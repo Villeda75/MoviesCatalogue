@@ -23,7 +23,7 @@ namespace MoviesCatalogue.Controllers
             _memoryCache = memoryCache;
         }
 
-        // GET: api/Movies
+        // GET
         [HttpGet]
         public async Task<ActionResult<dynamic>> GetMovies(MovieFilters filters)
         {
@@ -111,8 +111,9 @@ namespace MoviesCatalogue.Controllers
             }
         }
 
-       
-        // PUT: api/Movies/5
+
+        // PUT
+        [Authorize(Policy = "AdminPermission")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutMovie(int id, Movie movie)
         {
@@ -142,7 +143,7 @@ namespace MoviesCatalogue.Controllers
             return NoContent();
         }
 
-        // POST: api/Movies
+        // POST
         [Authorize(Policy = "AdminPermission")]
         [HttpPost]
         public async Task<ActionResult<Movie>> PostMovie(Movie movie)
@@ -166,7 +167,8 @@ namespace MoviesCatalogue.Controllers
             });
         }
 
-        // DELETE: api/Movies/5
+        // DELETE
+        [Authorize(Policy = "AdminPermission")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteMovie(int id)
         {
