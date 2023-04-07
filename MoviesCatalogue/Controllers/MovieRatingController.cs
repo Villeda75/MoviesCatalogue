@@ -98,7 +98,7 @@ namespace MoviesCatalogue.Controllers
 
                 int userId = Jwt.GetClaimId(identity);
 
-                if (UserHasRatedMovie(movieRating.MovieId).Result)
+                if (UserHasRatedMovie(movieRating.MovieId, userId).Result)
                 {
                     return BadRequest(new Response<dynamic>(message, "The movie has already been rated by the user.", ""));
                 }
@@ -156,9 +156,9 @@ namespace MoviesCatalogue.Controllers
             return NoContent();
         }
 
-        private async Task<bool> UserHasRatedMovie(int MovieId)
+        private async Task<bool> UserHasRatedMovie(int MovieId, int UserId)
         {
-            bool hasRated = await _context.RatedMovies.AnyAsync(x => x.MovieId == MovieId);
+            bool hasRated = await _context.RatedMovies.AnyAsync(x => x.MovieId == MovieId && x.UserId == UserId);
             
             return hasRated;
         }
