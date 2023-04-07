@@ -97,6 +97,7 @@ namespace MoviesCatalogue.Controllers
                     movies = movies.Where(m => m.ReleaseYear.Equals(filters.YearOfRelease));
                 }
 
+
                 int SkipRows = (PageNumber - 1) * PageSize;
 
                 movieList = await movies.Skip(SkipRows).Take(PageSize).ToListAsync();
@@ -116,14 +117,49 @@ namespace MoviesCatalogue.Controllers
         // PUT
         [Authorize(Policy = "AdminPermission")]
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutMovie(int id, Movie movie)
+        public async Task<IActionResult> PutMovie(int id, CreateMovie movie)
         {
-            if (id != movie.Id)
+            string message = "Could not update movie.";
+
+            if (id == 0 || movie.Id == 0)
             {
-                return BadRequest();
+                return BadRequest(new Response<dynamic>(message, "Empty id field.", ""));
             }
 
-            _context.Entry(movie).State = EntityState.Modified;
+            if (id != movie.Id)
+            {
+                return BadRequest(new Response<dynamic>(message, "The id field does not match.", ""));
+            }
+
+            if (!string.IsNullOrEmpty(movie.Name))
+            {
+                return BadRequest(new Response<dynamic>(message, "Movie name is required.", ""));
+            }
+
+            if (!string.IsNullOrEmpty(movie.Category))
+            {
+                return BadRequest(new Response<dynamic>(message, "Movie category is required.", ""));
+            }
+
+            if (movie.ReleaseYear == 0)
+            {
+                return BadRequest(new Response<dynamic>(message, "Year of release is required.", ""));
+            }
+
+            var entityObject = await _context.Movies.FindAsync(id);
+
+            if (entityObject is null)
+            {
+                return NotFound(new Response<dynamic>(message, "Movie not found.", ""));
+            }
+
+            entityObject.Name = movie.Name;
+            entityObject.ReleaseYear = movie.ReleaseYear;
+            entityObject.Synopsis = movie.Synopsis;
+            entityObject.ImagePoster = movie.ImagePoster;
+            entityObject.Category = movie.Category;
+
+            _context.Entry(entityObject).State = EntityState.Modified;
 
             try
             {
