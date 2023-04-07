@@ -127,7 +127,7 @@ namespace MoviesCatalogue.Controllers
         [Authorize]
         public async Task<IActionResult> DeleteRatedMovie(int id)
         {
-            string message = "Could not deleted movie.";
+            string message = "Could not deleted movie rating.";
 
             if (id == 0)
             {
