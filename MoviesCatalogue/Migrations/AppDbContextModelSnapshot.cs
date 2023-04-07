@@ -58,7 +58,7 @@ namespace MoviesCatalogue.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Movies");
+                    b.ToTable("Movies", (string)null);
 
                     b.HasData(
                         new
@@ -109,7 +109,7 @@ namespace MoviesCatalogue.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("RatedMovies");
+                    b.ToTable("RatedMovies", (string)null);
 
                     b.HasData(
                         new
@@ -156,7 +156,7 @@ namespace MoviesCatalogue.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
 
                     b.HasData(
                         new

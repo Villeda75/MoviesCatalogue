@@ -1,13 +1,14 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using MoviesCatalogue.Classes;
 using MoviesCatalogue.Context;
+using MoviesCatalogue.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
 
 namespace MoviesCatalogue.Controllers
 {
@@ -58,7 +59,8 @@ namespace MoviesCatalogue.Controllers
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(JwtRegisteredClaimNames.Iat, DateTime.UtcNow.ToString()),
                 new Claim("Id", user.Id.ToString()),
-                new Claim("Username", user.Email)
+                new Claim("Username", user.Email),
+                new Claim(ClaimTypes.Role, user.Role),
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Key));
@@ -68,7 +70,8 @@ namespace MoviesCatalogue.Controllers
                 jwt.Issuer,
                 jwt.Audience,
                 claims,
-                expires: DateTime.Now.AddMinutes(15),
+                //expires: DateTime.Now.AddMinutes(15),
+                expires: DateTime.Now.AddHours(5),
                 signingCredentials: sigIn
                 );
 
@@ -79,6 +82,98 @@ namespace MoviesCatalogue.Controllers
                 user = user.Name,
                 token = new JwtSecurityTokenHandler().WriteToken(token)
             };
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<User>> PostUser(User user)
+        {
+            string errorMessage = "Failed to register user.";
+
+            try
+            {   
+                if (user is null)
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        status = 400,
+                        message = errorMessage,
+                        error = "Object null"
+                        
+                    });
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        status = 400,
+                        message = errorMessage,
+                        error = "Missing required fields: Name, Email, Password and Role"
+                        
+                    });
+                }
+
+                if (!IsValidEmail(user.Email))
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        status = 400,
+                        message = errorMessage,
+                        error = "Invalid email"
+                    });
+                }
+
+               
+                if (IsTheUserExist(user.Email))
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        status = 400,
+                        message = errorMessage,
+                        error = "User already exists"
+                    });
+                }
+                    
+
+                _context.Users.Add(user);
+                await _context.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    success = true,
+                    status = 201,
+                    message = "Successfully registered user.",
+                    data = user,
+                    error = ""
+                });
+            }
+            catch (Exception error)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    status = 400,
+                    message = errorMessage,
+                    error = error.Message
+                });
+            }
+           
+        }
+
+        [NonAction]
+        public bool IsTheUserExist(string Email)
+        {
+            return _context.Users.Where(x => x.Email.Equals(Email)).Any();
+        }
+
+        [NonAction]
+        public bool IsValidEmail(string Email)
+        {
+            return new EmailAddressAttribute().IsValid(Email);
         }
     }
 }
