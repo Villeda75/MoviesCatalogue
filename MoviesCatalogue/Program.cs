@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +22,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
     options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
     {
         ValidateIssuer = true,
+        ValidateIssuerSigningKey = true,
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateActor = true,
@@ -28,6 +30,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
         ValidAudience = builder.Configuration["Jwt:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
     };
+});
+
+builder.Services.AddAuthorization(options => {
+    options.AddPolicy("AdminPermission", policy => policy.RequireClaim(ClaimTypes.Role, "Admin"));
 });
 
 builder.Services.AddMemoryCache();
@@ -46,10 +52,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseAuthorization();
-
 //Jwt authentication
 app.UseAuthentication();
+
+app.UseAuthorization();
 
 app.MapControllers();
 
