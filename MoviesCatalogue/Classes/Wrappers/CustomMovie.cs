@@ -1,4 +1,6 @@
-﻿namespace MoviesCatalogue.Classes.Wrappers
+﻿using MoviesCatalogue.Models;
+
+namespace MoviesCatalogue.Classes.Wrappers
 {
     public class CustomMovie
     {
@@ -10,5 +12,6 @@
         public string Category { get; set; }
         public DateTime CreatedDate { get; set; }
         public int? Rate { get; set; }
+        public CreatedByUser CreatedByUser { get; set; }
     }
 }

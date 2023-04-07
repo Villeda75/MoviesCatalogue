@@ -1,21 +1,12 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using MoviesCatalogue.Classes.Wrappers;
 using MoviesCatalogue.Context;
 using MoviesCatalogue.Models;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using System.Drawing;
-//using CustomMovie = MoviesCatalogue.Classes.Wrappers.Movie;
 
 namespace MoviesCatalogue.Controllers
 {
@@ -68,6 +59,8 @@ namespace MoviesCatalogue.Controllers
                 }
 
                 var movies = from m in _context.Movies
+                             join usr in _context.Users
+                             on m.UserId equals usr.Id
                              join mr in _context.RatedMovies
                              on m.Id equals mr.MovieId into moviesRating
                              from ratedMovies in moviesRating.DefaultIfEmpty()
@@ -81,7 +74,11 @@ namespace MoviesCatalogue.Controllers
                                  ReleaseYear = m.ReleaseYear,
                                  Category = m.Category,
                                  Rate = ratedMovies.Rate,
-                                 CreatedDate = m.CreatedDate
+                                 CreatedDate = m.CreatedDate,
+                                 CreatedByUser = new CreatedByUser { 
+                                     Id = usr.Id, 
+                                     Name = usr.Name 
+                                 }
                              };
 
                 if (!string.IsNullOrEmpty(filters.SearchText))
