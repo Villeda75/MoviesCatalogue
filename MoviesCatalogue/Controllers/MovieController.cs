@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using MoviesCatalogue.Classes;
 using MoviesCatalogue.Classes.Wrappers;
 using MoviesCatalogue.Context;
 using MoviesCatalogue.Models;
@@ -23,9 +24,9 @@ namespace MoviesCatalogue.Controllers
             _memoryCache = memoryCache;
         }
 
-        // GET
-        [HttpGet]
-        public async Task<ActionResult<dynamic>> GetMovies(MovieFilters filters)
+        //GET All Movies
+        [HttpPost("get")]
+        public async Task<ActionResult<List<CustomMovie>>> Get(MovieFilters filters)
         {
             List<CustomMovie> movieList = new();
 
@@ -107,7 +108,7 @@ namespace MoviesCatalogue.Controllers
             catch (Exception error)
             {
                 string message = "An error occurred while getting the movies.";
-                return BadRequest(new Response<dynamic>(message, error.Message, movieList));
+                return BadRequest(new Response<List<CustomMovie>>(message, error.Message, movieList));
             }
         }
 
@@ -148,15 +149,37 @@ namespace MoviesCatalogue.Controllers
         [HttpPost]
         public async Task<ActionResult<Movie>> PostMovie(Movie movie)
         {
-            if (ModelState.IsValid) {
+            string message = "Could not created movie.";
+
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(new Response<Movie>("Could not create movie.", "Invalid object.", movie));
+                }
+                
+                ClaimsIdentity? identity = HttpContext.User.Identity as ClaimsIdentity;
+
+                if (identity == null)
+                {
+                    return NotFound(new Response<dynamic>(message, "User not found", ""));
+                }
+
+                int userId = Jwt.GetClaimId(identity);
+
+                movie.CreatedDate = DateTime.UtcNow;
+                movie.UserId = userId;
 
                 _context.Movies.Add(movie);
                 await _context.SaveChangesAsync();
 
                 return Ok(new Response<Movie>("Successfully created movie.", movie));
             }
+            catch (Exception error)
+            {
+                return BadRequest(new Response<dynamic>(message, error.Message, ""));
+            }
 
-            return BadRequest(new Response<Movie>("Could not create movie.", "Object null.", movie));
         }
 
         // DELETE
