@@ -42,9 +42,9 @@ namespace MoviesCatalogue.Context
                     Id = 1,
                     Name = "Harry Potter and the Sorcerer's Stone",
                     Synopsis = "Harry Potter's life is miserable. His parents are dead and he's stuck with his heartless relatives, who force him to live in a tiny closet under the stairs.",
-                    Category = "Horror",
-                    ReleaseYear = 1998,
-                    CreatedDate = new DateTime(1965, 07, 31),
+                    Category = "Fantasy",
+                    ReleaseYear = 2001,
+                    CreatedDate = DateTime.UtcNow,
                     UserId = 1
                 });
 
@@ -53,12 +53,45 @@ namespace MoviesCatalogue.Context
                     Id = 2,
                     Name = "Harry Potter and the Chamber of Secrets",
                     Synopsis = "Ever since Harry Potter had come home for the summer, the Dursleys had been so mean and hideous that all Harry wanted was to get back to the Hogwarts School for Witchcraft and Wizardry. ",
-                    Category = "Science fiction",
-                    ReleaseYear = 2020,
-                    CreatedDate = new DateTime(2023, 03, 31),
+                    Category = "Fantasy",
+                    ReleaseYear = 2002,
+                    CreatedDate = DateTime.UtcNow,
+                    UserId = 1
+                });
+
+                b.HasData(new Movie
+                {
+                    Id = 3,
+                    Name = "Rocky",
+                    Synopsis = "Rocky is a small-time Philadelphia boxer going nowhere, until an unbelievable shot to fight the world heavyweight champion lights a fire inside him.",
+                    Category = "Sports drama",
+                    ReleaseYear = 1976,
+                    CreatedDate = DateTime.UtcNow,
                     UserId = 2
                 });
-                
+
+                b.HasData(new Movie
+                {
+                    Id = 4,
+                    Name = "Bee Movie",
+                    Synopsis = "Barry, a worker bee stuck in a dead-end job making honey, sues humans when he learns they've been stealing bees' nectar all along.",
+                    Category = "Kids",
+                    ReleaseYear = 2007,
+                    CreatedDate = DateTime.UtcNow,
+                    UserId = 2
+                });
+
+                b.HasData(new Movie
+                {
+                    Id = 5,
+                    Name = "Fast Five",
+                    Synopsis = "Brian and Mia break Dom out of prison and head to Brazil to put together a racing team -- and take on a drug dealer who wants to kill them.",
+                    Category = "Action & Adventure",
+                    ReleaseYear = 2011,
+                    CreatedDate = DateTime.UtcNow,
+                    UserId = 1
+                });
+
             });
 
             _builder.Entity<RatedMovie>(a =>
@@ -68,7 +101,7 @@ namespace MoviesCatalogue.Context
                     Id = 1,
                     MovieId = 1,
                     UserId = 1,
-                    Rate = 7,
+                    Rate = 9,
                 });
 
                 a.HasData(new RatedMovie
@@ -76,7 +109,7 @@ namespace MoviesCatalogue.Context
                     Id = 2,
                     MovieId = 2,
                     UserId = 2,
-                    Rate = 9,
+                    Rate = 7,
                 });
             });
         }
