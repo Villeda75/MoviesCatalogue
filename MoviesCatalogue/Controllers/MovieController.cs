@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
@@ -8,8 +9,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using MoviesCatalogue.Classes.Wrappers;
 using MoviesCatalogue.Context;
 using MoviesCatalogue.Models;
+using Newtonsoft.Json;
+//using CustomMovie = MoviesCatalogue.Classes.Wrappers.Movie;
 
 namespace MoviesCatalogue.Controllers
 {
@@ -28,25 +32,69 @@ namespace MoviesCatalogue.Controllers
 
         // GET: api/Movies
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Movie>>> GetMovies()
+        public async Task<ActionResult<dynamic>> GetMovies(MovieFilters filters)
         {
-            //string? search, string category, int releasedYear
+            List<CustomMovie> movieList = new();
+
             try
             {
-                List<Movie> result = await _memoryCache.GetOrCreateAsync("allmovies", async entry =>
+                int TotalRecords = await _context.Movies.CountAsync();
+
+                if (TotalRecords == 0)
                 {
-                    var movies = await _context.Movies.ToListAsync();
+                    return Ok(new PaginatedResponse<List<CustomMovie>>(movieList, 1, 0, 0, 0));
+                }
 
-                    return movies;
-                });
+                //Validate paginated parameters
+                int PageNumber = filters.PageNumber > 0 ? filters.PageNumber : 1; 
+                int PageSize = filters.PageSize > 0 ? filters.PageSize : 4; 
 
-                return result;
+                var movies = from m in _context.Movies
+                             join mr in _context.RatedMovies
+                             on m.Id equals mr.MovieId into moviesRating
+                             from ratedMovies in moviesRating.DefaultIfEmpty()
+                             orderby m.ReleaseYear, m.Name, m.CreatedDate, ratedMovies.Rate
+                             select new CustomMovie
+                             { 
+                                 Id = m.Id,
+                                 Name = m.Name,
+                                 Synopsis = m.Synopsis,
+                                 ImagePoster = m.ImagePoster,
+                                 ReleaseYear = m.ReleaseYear,
+                                 Category = m.Category,
+                                 Rate = ratedMovies.Rate,
+                                 CreatedDate = m.CreatedDate
+                             };
+
+                if (!string.IsNullOrEmpty(filters.SearchText))
+                {
+                    movies = movies.Where(m => m.Name.Contains(filters.SearchText) || m.Synopsis.Contains(filters.SearchText));
+                }
+
+                if (!string.IsNullOrEmpty(filters.Category))
+                {
+                    movies = movies.Where(m => m.Category.Equals(filters.Category));
+                }
+
+                if (filters.YearOfRelease is not null && filters.YearOfRelease > 0)
+                {
+                    movies = movies.Where(m => m.ReleaseYear.Equals(filters.YearOfRelease));
+                }
+
+                int SkipRows = (PageNumber - 1) * PageSize;
+
+                movieList = await movies.Skip(SkipRows).Take(PageSize).ToListAsync();
+
+                decimal PagesQuotient = TotalRecords / PageSize;
+                int TotalPages = (int)Math.Ceiling(PagesQuotient);
+
+                return Ok(new PaginatedResponse<List<CustomMovie>>(movieList, PageNumber, PageSize, TotalPages, TotalRecords));
 
             }
             catch (Exception error)
             {
-                string err = error.Message;
-                throw;
+                string message = "An error occurred while getting the movies.";
+                return BadRequest(new Response<dynamic>(message, error.Message, movieList));
             }
         }
 
@@ -82,6 +130,7 @@ namespace MoviesCatalogue.Controllers
         }
 
         // POST: api/Movies
+        [Authorize(Policy = "AdminPermission")]
         [HttpPost]
         public async Task<ActionResult<Movie>> PostMovie(Movie movie)
         {
