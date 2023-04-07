@@ -205,10 +205,19 @@ namespace MoviesCatalogue.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteMovie(int id)
         {
+            
+            string message = "Could not deleted movie.";
+
+            if (id == 0)
+            {
+                return NotFound(new Response<dynamic>(message, "Empty id.", ""));
+            }
+
             var movie = await _context.Movies.FindAsync(id);
+            
             if (movie == null)
             {
-                return NotFound(new Response<string>("Could not delete movie.", "Movie not found.", ""));
+                return NotFound(new Response<string>(message, "Movie not found.", ""));
             }
 
             _context.Movies.Remove(movie);
