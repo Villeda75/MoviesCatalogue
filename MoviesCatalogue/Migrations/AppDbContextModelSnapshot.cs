@@ -58,28 +58,58 @@ namespace MoviesCatalogue.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Movies", (string)null);
+                    b.ToTable("Movies");
 
                     b.HasData(
                         new
                         {
                             Id = 1,
-                            Category = "Horror",
-                            CreatedDate = new DateTime(1965, 7, 31, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Category = "Fantasy",
+                            CreatedDate = new DateTime(2023, 4, 7, 23, 46, 52, 543, DateTimeKind.Utc).AddTicks(957),
                             Name = "Harry Potter and the Sorcerer's Stone",
-                            ReleaseYear = 1998,
+                            ReleaseYear = 2001,
                             Synopsis = "Harry Potter's life is miserable. His parents are dead and he's stuck with his heartless relatives, who force him to live in a tiny closet under the stairs.",
                             UserId = 1
                         },
                         new
                         {
                             Id = 2,
-                            Category = "Science fiction",
-                            CreatedDate = new DateTime(2023, 3, 31, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Category = "Fantasy",
+                            CreatedDate = new DateTime(2023, 4, 7, 23, 46, 52, 543, DateTimeKind.Utc).AddTicks(963),
                             Name = "Harry Potter and the Chamber of Secrets",
-                            ReleaseYear = 2020,
+                            ReleaseYear = 2002,
                             Synopsis = "Ever since Harry Potter had come home for the summer, the Dursleys had been so mean and hideous that all Harry wanted was to get back to the Hogwarts School for Witchcraft and Wizardry. ",
+                            UserId = 1
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Category = "Sports drama",
+                            CreatedDate = new DateTime(2023, 4, 7, 23, 46, 52, 543, DateTimeKind.Utc).AddTicks(965),
+                            Name = "Rocky",
+                            ReleaseYear = 1976,
+                            Synopsis = "Rocky is a small-time Philadelphia boxer going nowhere, until an unbelievable shot to fight the world heavyweight champion lights a fire inside him.",
                             UserId = 2
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Category = "Kids",
+                            CreatedDate = new DateTime(2023, 4, 7, 23, 46, 52, 543, DateTimeKind.Utc).AddTicks(967),
+                            Name = "Bee Movie",
+                            ReleaseYear = 2007,
+                            Synopsis = "Barry, a worker bee stuck in a dead-end job making honey, sues humans when he learns they've been stealing bees' nectar all along.",
+                            UserId = 2
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Category = "Action & Adventure",
+                            CreatedDate = new DateTime(2023, 4, 7, 23, 46, 52, 543, DateTimeKind.Utc).AddTicks(969),
+                            Name = "Fast Five",
+                            ReleaseYear = 2011,
+                            Synopsis = "Brian and Mia break Dom out of prison and head to Brazil to put together a racing team -- and take on a drug dealer who wants to kill them.",
+                            UserId = 1
                         });
                 });
 
@@ -109,7 +139,7 @@ namespace MoviesCatalogue.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("RatedMovies", (string)null);
+                    b.ToTable("RatedMovies");
 
                     b.HasData(
                         new
@@ -117,7 +147,7 @@ namespace MoviesCatalogue.Migrations
                             Id = 1,
                             CreatedDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             MovieId = 1,
-                            Rate = 7,
+                            Rate = 9,
                             UserId = 1
                         },
                         new
@@ -125,7 +155,7 @@ namespace MoviesCatalogue.Migrations
                             Id = 2,
                             CreatedDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             MovieId = 2,
-                            Rate = 9,
+                            Rate = 7,
                             UserId = 2
                         });
                 });
@@ -156,7 +186,7 @@ namespace MoviesCatalogue.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
 
                     b.HasData(
                         new
