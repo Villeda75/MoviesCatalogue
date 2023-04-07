@@ -147,17 +147,27 @@ namespace MoviesCatalogue.Controllers
         // POST
         [Authorize(Policy = "AdminPermission")]
         [HttpPost]
-        public async Task<ActionResult<Movie>> PostMovie(Movie movie)
+        public async Task<ActionResult<dynamic>> PostMovie(CreateMovie movie)
         {
             string message = "Could not created movie.";
 
             try
             {
-                if (!ModelState.IsValid)
+                if (!string.IsNullOrEmpty(movie.Name))
                 {
-                    return BadRequest(new Response<Movie>("Could not create movie.", "Invalid object.", movie));
+                    return BadRequest(new Response<dynamic>(message, "Movie name is required.", ""));
                 }
-                
+
+                if (!string.IsNullOrEmpty(movie.Category))
+                {
+                    return BadRequest(new Response<dynamic>(message, "Movie category is required.", ""));
+                }
+
+                if (movie.ReleaseYear == 0)
+                {
+                    return BadRequest(new Response<dynamic>(message, "Year of release is required.", ""));
+                }
+
                 ClaimsIdentity? identity = HttpContext.User.Identity as ClaimsIdentity;
 
                 if (identity == null)
@@ -167,13 +177,21 @@ namespace MoviesCatalogue.Controllers
 
                 int userId = Jwt.GetClaimId(identity);
 
-                movie.CreatedDate = DateTime.UtcNow;
-                movie.UserId = userId;
+                Movie entityObject = new()
+                {
+                    Name = movie.Name,
+                    ReleaseYear = movie.ReleaseYear,
+                    Synopsis = movie.Synopsis,
+                    ImagePoster = movie.ImagePoster,
+                    CreatedDate = DateTime.UtcNow,
+                    UserId = userId,
+                    Category = movie.Category
+                };
 
-                _context.Movies.Add(movie);
+                _context.Movies.Add(entityObject);
                 await _context.SaveChangesAsync();
 
-                return Ok(new Response<Movie>("Successfully created movie.", movie));
+                return Ok(new Response<Movie>("Successfully created movie.", entityObject));
             }
             catch (Exception error)
             {
