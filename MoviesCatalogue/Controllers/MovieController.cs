@@ -148,23 +148,15 @@ namespace MoviesCatalogue.Controllers
         [HttpPost]
         public async Task<ActionResult<Movie>> PostMovie(Movie movie)
         {
-            var identity = HttpContext.User.Identity as ClaimsIdentity;
+            if (ModelState.IsValid) {
 
-            bool isAdmin = IsAdmin(identity);
-
-            if (isAdmin) {
                 _context.Movies.Add(movie);
                 await _context.SaveChangesAsync();
 
-                return CreatedAtAction("GetMovie", new { id = movie.Id }, movie);
+                return Ok(new Response<Movie>("Successfully created movie.", movie));
             }
 
-            return Unauthorized(new
-            {
-                success = false,
-                message = "You don't have administrator permission",
-                data = ""
-            });
+            return BadRequest(new Response<Movie>("Could not create movie.", "Object null.", movie));
         }
 
         // DELETE
@@ -175,7 +167,7 @@ namespace MoviesCatalogue.Controllers
             var movie = await _context.Movies.FindAsync(id);
             if (movie == null)
             {
-                return NotFound();
+                return NotFound(new Response<string>("Could not delete movie.", "Movie not found.", ""));
             }
 
             _context.Movies.Remove(movie);
@@ -187,34 +179,6 @@ namespace MoviesCatalogue.Controllers
         private bool MovieExists(int id)
         {
             return (_context.Movies?.Any(e => e.Id == id)).GetValueOrDefault();
-        }
-
-        private bool IsAdmin(ClaimsIdentity identity)
-        {
-            bool isAdmin = false;
-
-            try
-            {
-
-                if (identity.Claims.Any())
-                {
-
-                    var Id = identity.Claims.FirstOrDefault(x => x.Type == "Id").Value;
-
-                    if (int.TryParse(Id, out int userId))
-                    {
-                        User user = _context.Users.Where(x => x.Id.Equals(userId)).FirstOrDefault();
-                        
-                        isAdmin = user.Role.Equals("Admin");
-                    }
-                }
-
-                return isAdmin;
-            }
-            catch (Exception error)
-            {
-                return isAdmin;
-            }
         }
 
         private static string GenerateCacheKeyFromObject<TEntity>(TEntity movieObj)
