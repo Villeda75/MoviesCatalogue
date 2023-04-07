@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Security.Claims;
+using Microsoft.Extensions.Options;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,10 +16,16 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Register database
+//Register database
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+//Cyclic reference error handling
+builder.Services.AddControllers().AddJsonOptions(options => {
+    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+});
+
+//JWT
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options => {
     options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
     {
@@ -32,14 +40,17 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
     };
 });
 
+//Create JWT Policy for Admin validation
 builder.Services.AddAuthorization(options => {
     options.AddPolicy("AdminPermission", policy => policy.RequireClaim(ClaimTypes.Role, "Admin"));
 });
 
+//Use MemoryCache
 builder.Services.AddMemoryCache();
 
 var app = builder.Build();
 
+//Use Swagger
 app.UseSwagger();
 app.UseSwaggerUI();
 
@@ -52,9 +63,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-//Jwt authentication
+//Use Jwt authentication and Authorization
 app.UseAuthentication();
-
 app.UseAuthorization();
 
 app.MapControllers();
