@@ -94,7 +94,7 @@ namespace MoviesCatalogue.Controllers
                                                      ReleaseYear = m.movie.ReleaseYear,
                                                      Category = m.movie.Category,
                                                      CreatedDate = m.movie.CreatedDate,
-                                                     Rate = m.ratings.Any() ? m.ratings.Average(r => r.Rate) : 0,
+                                                     Rate = m.ratings.Any() ? Math.Round(m.ratings.Average(r => r.Rate), 2) : 0,
                                                      CreatedByUser = new CreatedByUser { Id = m.user.Id, Name = m.user.Name }
                                                  })
                                                  .OrderBy(m => m.ReleaseYear)
