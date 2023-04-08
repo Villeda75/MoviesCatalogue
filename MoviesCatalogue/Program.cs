@@ -50,8 +50,14 @@ builder.Services.AddMemoryCache();
 
 var app = builder.Build();
 
-//Use Swagger
-app.UseSwagger();
+using (var scope = app.Services.CreateScope())
+{
+    AppDbContext context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    context.Database.EnsureCreated();
+}
+
+    //Use Swagger
+    app.UseSwagger();
 app.UseSwaggerUI();
 
 // Configure the HTTP request pipeline.
