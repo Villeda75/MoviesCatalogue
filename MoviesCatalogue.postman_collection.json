@@ -384,7 +384,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"movieId\": 1,\r\n  \"rating\": 6\r\n}",
+							"raw": "{\r\n  \"movieId\": 1,\r\n  \"rating\": 7\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -461,11 +461,21 @@
 			]
 		},
 		{
-			"name": "Upload images",
+			"name": "Upload movie images",
 			"item": [
 				{
 					"name": "Upload image",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "POST",
 						"header": [],
 						"body": {
@@ -475,16 +485,41 @@
 									"key": "file",
 									"type": "file",
 									"src": []
+								},
+								{
+									"key": "",
+									"value": "",
+									"type": "text",
+									"disabled": true
 								}
 							]
 						},
 						"url": {
-							"raw": "{{URL_Base}}/images",
+							"raw": "{{URL_Base}}/images/1",
 							"host": [
 								"{{URL_Base}}"
 							],
 							"path": [
-								"images"
+								"images",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get image",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{URL_Base}}/images/1ecd933c-5fb8-49d7-a68c-c893afa9d8fb.jpeg",
+							"host": [
+								"{{URL_Base}}"
+							],
+							"path": [
+								"images",
+								"1ecd933c-5fb8-49d7-a68c-c893afa9d8fb.jpeg"
 							]
 						}
 					},
