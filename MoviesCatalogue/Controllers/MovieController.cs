@@ -46,12 +46,10 @@ namespace MoviesCatalogue.Controllers
                 {
                     return Ok(new PaginatedResponse<List<CustomMovie>>(cacheMovies, PageNumber, PageSize, TotalPages, TotalRecords));
                 }
-                
+
                 var cacheEntryOptions = new MemoryCacheEntryOptions()
                     .SetSlidingExpiration(TimeSpan.FromMinutes(1))
                     .SetAbsoluteExpiration(TimeSpan.FromMinutes(15));
-
-                
 
                 if (TotalRecords == 0)
                 {
@@ -59,50 +57,58 @@ namespace MoviesCatalogue.Controllers
                     return Ok(new PaginatedResponse<List<CustomMovie>>(movieList, PageNumber, PageSize, TotalPages, TotalRecords));
                 }
 
-                var movies = from m in _context.Movies
-                             join usr in _context.Users
-                             on m.UserId equals usr.Id
-                             join mr in _context.RatedMovies
-                             on m.Id equals mr.MovieId into moviesRating
-                             from ratedMovies in moviesRating.DefaultIfEmpty()
-                             orderby m.ReleaseYear, m.Name, m.CreatedDate, ratedMovies.Rate
-                             select new CustomMovie
-                             { 
-                                 Id = m.Id,
-                                 Name = m.Name,
-                                 Synopsis = m.Synopsis,
-                                 ImagePoster = m.ImagePoster,
-                                 ReleaseYear = m.ReleaseYear,
-                                 Category = m.Category,
-                                 Rate = ratedMovies.Rate,
-                                 CreatedDate = m.CreatedDate,
-                                 CreatedByUser = new CreatedByUser { 
-                                     Id = usr.Id, 
-                                     Name = usr.Name 
-                                 }
-                             };
+                int SkipRows = (PageNumber - 1) * PageSize;
+
+                var moviesWithRatings = from movie in _context.Movies
+                                        join user in _context.Users on movie.UserId equals user.Id
+                                        join rating in _context.RatedMovies on movie.Id equals rating.MovieId into movieRatings
+                                        select new
+                                        {
+                                            movie,
+                                            ratings = movieRatings.ToList(),
+                                            user
+                                        };
 
                 if (!string.IsNullOrEmpty(filters.SearchText))
                 {
-                    movies = movies.Where(m => m.Name.Contains(filters.SearchText) || m.Synopsis.Contains(filters.SearchText));
+                    moviesWithRatings = moviesWithRatings.Where(m => m.movie.Name.Contains(filters.SearchText) || m.movie.Synopsis.Contains(filters.SearchText));
                 }
 
                 if (!string.IsNullOrEmpty(filters.Category))
                 {
-                    movies = movies.Where(m => m.Category.Equals(filters.Category));
+                    moviesWithRatings = moviesWithRatings.Where(m => m.movie.Category.Equals(filters.Category));
                 }
 
                 if (filters.YearOfRelease is not null && filters.YearOfRelease > 0)
                 {
-                    movies = movies.Where(m => m.ReleaseYear.Equals(filters.YearOfRelease));
+                    moviesWithRatings = moviesWithRatings.Where(m => m.movie.ReleaseYear.Equals(filters.YearOfRelease));
                 }
 
+                var filteredMoviesWithRatings = moviesWithRatings
+                                                 .Select(m => new CustomMovie
+                                                 {
+                                                     Id = m.movie.Id,
+                                                     Name = m.movie.Name,
+                                                     Synopsis = m.movie.Synopsis,
+                                                     ImagePoster = m.movie.ImagePoster,
+                                                     ReleaseYear = m.movie.ReleaseYear,
+                                                     Category = m.movie.Category,
+                                                     CreatedDate = m.movie.CreatedDate,
+                                                     Rate = m.ratings.Any() ? m.ratings.Average(r => r.Rate) : 0,
+                                                     CreatedByUser = new CreatedByUser { Id = m.user.Id, Name = m.user.Name }
+                                                 })
+                                                 .OrderBy(m => m.ReleaseYear)
+                                                 .ThenBy(m => m.Name)
+                                                 .ThenBy(m => m.CreatedDate)
+                                                 .ThenBy(m => m.Rate)
+                                                 .Skip(SkipRows)
+                                                 .Take(PageSize)
+                                                 .ToList();
 
-                int SkipRows = (PageNumber - 1) * PageSize;
-
-                movieList = await movies.Skip(SkipRows).Take(PageSize).ToListAsync();
+                movieList = filteredMoviesWithRatings;
 
                 _memoryCache.Set(cacheKey, movieList, cacheEntryOptions);
+
                 return Ok(new PaginatedResponse<List<CustomMovie>>(movieList, PageNumber, PageSize, TotalPages, TotalRecords));
 
             }

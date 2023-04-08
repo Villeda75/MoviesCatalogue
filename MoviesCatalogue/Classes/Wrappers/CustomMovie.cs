@@ -11,7 +11,7 @@ namespace MoviesCatalogue.Classes.Wrappers
         public string? ImagePoster { get; set; }
         public string Category { get; set; }
         public DateTime CreatedDate { get; set; }
-        public int? Rate { get; set; }
+        public double Rate { get; set; }
         public CreatedByUser CreatedByUser { get; set; }
     }
 }
