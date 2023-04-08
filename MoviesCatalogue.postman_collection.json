@@ -1,0 +1,496 @@
+{
+	"info": {
+		"_postman_id": "97863bf8-d992-4415-8280-17ccd7fee276",
+		"name": "MoviesCatalogue",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "26769170"
+	},
+	"item": [
+		{
+			"name": "Authenticate users",
+			"item": [
+				{
+					"name": "Authenticate user role",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"alexander@gmail.com\",\r\n    \"password\": \"us3r321!\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL_Base}}/user/login",
+							"host": [
+								"{{URL_Base}}"
+							],
+							"path": [
+								"user",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Authenticate admin user role",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"josuechacon@gmail.com\",\r\n    \"password\": \"@dmi321!\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL_Base}}/user/login",
+							"host": [
+								"{{URL_Base}}"
+							],
+							"path": [
+								"user",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register new user",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"John Doe\",\r\n  \"email\": \"johndoe@gmail.com\",\r\n  \"password\": \"user321!\",\r\n  \"role\": \"User\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL_Base}}/user",
+							"host": [
+								"{{URL_Base}}"
+							],
+							"path": [
+								"user"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Movies",
+			"item": [
+				{
+					"name": "Get",
+					"item": [
+						{
+							"name": "Get Movies",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"pageNumber\": 1,\r\n  \"pageSize\": 4,\r\n  \"searchText\": \"\",\r\n  \"category\": \"\",\r\n  \"yearOfRelease\": null\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL_Base}}/movie/get",
+									"host": [
+										"{{URL_Base}}"
+									],
+									"path": [
+										"movie",
+										"get"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Put",
+					"item": [
+						{
+							"name": "Edit movie with user role",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{userToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL_Base}}/movie/1",
+									"host": [
+										"{{URL_Base}}"
+									],
+									"path": [
+										"movie",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Edit movie with admin role",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{adminToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"name\": \"Grown Ups\",\r\n  \"releaseYear\": 2010,\r\n  \"synopsis\": \"Mourning the loss of their beloved junior high basketball coach, five middle-aged pals reunite at a lake house and rediscover the joys of being a kid.\",\r\n  \"imagePoster\": null,\r\n  \"category\": \"Comedies\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL_Base}}/movie/1",
+									"host": [
+										"{{URL_Base}}"
+									],
+									"path": [
+										"movie",
+										"1"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Post",
+					"item": [
+						{
+							"name": "Add Movie with user role",
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {}
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{userToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJiYXNlV2ViQVBJU3ViamVjdCIsImp0aSI6IjE4OTI4OTIyLWNlMjMtNDlmOS05NWEyLWU4NmMxNzM5MzMzNSIsImlhdCI6IjA0LzA2LzIwMjMgMjM6NDc6MDAiLCJJZCI6IjEiLCJVc2VybmFtZSI6Impvc3VlY2hhY29uQGdtYWlsLmNvbSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwiZXhwIjoxNjgwODI1NzIwLCJpc3MiOiJodHRwczovL2xvY2FsaG9zdDozMjc2OC8iLCJhdWQiOiJodHRwczovL2xvY2FsaG9zdDozMjc2OC8ifQ.6rQpMwX1ENSvq8JR2bX48c6HiPMNZK2d_k3plkABps0",
+										"type": "text",
+										"disabled": true
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"name\": \"Grown Ups\",\r\n  \"releaseYear\": 2010,\r\n  \"synopsis\": \"Mourning the loss of their beloved junior high basketball coach, five middle-aged pals reunite at a lake house and rediscover the joys of being a kid.\",\r\n  \"imagePoster\": \"\",\r\n  \"category\": \"Comedies\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL_Base}}/movie",
+									"host": [
+										"{{URL_Base}}"
+									],
+									"path": [
+										"movie"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Add Movie with admin user",
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {}
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{adminToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJiYXNlV2ViQVBJU3ViamVjdCIsImp0aSI6IjljYTJmYTMyLWZlMmYtNDVlZi1iYzY2LTliZDRmOTY5MWUxMSIsImlhdCI6IjA0LzA2LzIwMjMgMDY6NTc6MTAiLCJJZCI6IjEiLCJVc2VybmFtZSI6Impvc3VlY2hhY29uQGdtYWlsLmNvbSIsImV4cCI6MTY4MDc2NTEzMCwiaXNzIjoiaHR0cHM6Ly9sb2NhbGhvc3Q6MzI3NjgvIiwiYXVkIjoiaHR0cHM6Ly9sb2NhbGhvc3Q6MzI3NjgvIn0.kZHuYSslWxGPGnbn4Ct9z22QgBD2p9fYcr74_PRwz9c",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"name\": \"Grown Ups\",\r\n  \"releaseYear\": 2010,\r\n  \"synopsis\": \"Mourning the loss of their beloved junior high basketball coach, five middle-aged pals reunite at a lake house and rediscover the joys of being a kid.\",\r\n  \"imagePoster\": \"\",\r\n  \"category\": \"Comedies\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL_Base}}/movie",
+									"host": [
+										"{{URL_Base}}"
+									],
+									"path": [
+										"movie"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Delete",
+					"item": [
+						{
+							"name": "Delete Movie with user role",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{userToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{URL_Base}}/movie/1",
+									"host": [
+										"{{URL_Base}}"
+									],
+									"path": [
+										"movie",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Movie with admin role",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{adminToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{URL_Base}}/movie/5",
+									"host": [
+										"{{URL_Base}}"
+									],
+									"path": [
+										"movie",
+										"5"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Movie Rating",
+			"item": [
+				{
+					"name": "Add movie rating",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"movieId\": 1,\r\n  \"rating\": 6\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL_Base}}/movierating",
+							"host": [
+								"{{URL_Base}}"
+							],
+							"path": [
+								"movierating"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete movie rating",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{URL_Base}}/movierating/2",
+							"host": [
+								"{{URL_Base}}"
+							],
+							"path": [
+								"movierating",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get rated movies for authenticated user",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{URL_Base}}/movierating",
+							"host": [
+								"{{URL_Base}}"
+							],
+							"path": [
+								"movierating"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Upload images",
+			"item": [
+				{
+					"name": "Upload image",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{URL_Base}}/images",
+							"host": [
+								"{{URL_Base}}"
+							],
+							"path": [
+								"images"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
